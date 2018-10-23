@@ -1,4 +1,4 @@
-val t = [          0,   1,   2,   3,   4,   5,   6,   7,
+(* val t = [          0,   1,   2,   3,   4,   5,   6,   7,
                    8,   9,  10,  11,  12,  13,  14,  15,
                   16,  17,  18,  19,  20,  21,  22,  23,
                   24,  25,  26,(*27,  28,*)29,  30,  31,
@@ -13,9 +13,9 @@ val b_board = [   0,  0,  0,  0,  0,  0,  0,  0,
                   0,  0,  0, ~1,  1,  0,  0,  0,
                   0,  0,  0,  0,  0,  0,  0,  0,
                   0,  0,  0,  0,  0,  0,  0,  0,
-                  0,  0,  0,  0,  0,  0,  0,  0   ];          
+                  0,  0,  0,  0,  0,  0,  0,  0   ];           *)
 
-signature Reversi =
+(* signature Reversi =
 sig
     datatype player = Black | White
     datatype move = Pass | Move of int (* 0..63 *)
@@ -23,8 +23,8 @@ sig
     val author: string
     val nickname: string
     val init: player -> T
-    (* val think: T * move * Time.time -> move * T *)
-end;
+    val think: T * move * Time.time -> move * T
+end; *)
 
 structure Reversi_AI 
 (* :> Reversi *)
@@ -53,7 +53,16 @@ val init_board =
   end
 
 fun init Black = (Black, init_board)
-  | init White = (Black, init_board)   
+  | init White = (Black, init_board)
+
+fun get_mark (p,b) = 
+  let
+    val Board b1 = b
+    fun get_mark' [] p1 = 0
+      | get_mark' (x::xs) p1 = if (x = (SOME p1)) then 1 + (get_mark' xs p1) else (get_mark' xs p1)
+  in
+    get_mark' b1 p
+  end     
     
 fun get_all_NONE [] _ = []
   | get_all_NONE (bf::bs) c = if bf = NONE then c::(get_all_NONE bs (c+1)) else get_all_NONE bs (c+1)
@@ -101,11 +110,12 @@ fun valid_int_moves (p,b) =
     to_move_int_list NONE_ps
   end
 
-fun length lst = let
+fun length lst = 
+  let
     fun recur [] acc = acc
       | recur (_::rest) acc = recur rest (1 + acc)
   in recur lst 0
-end
+  end
 
 fun valid_moves (p,b) =
   let
@@ -149,10 +159,25 @@ fun make_move (p,b) m =
     if m = Pass then (opponent p,b) else (opponent p, Board (check_directions b1 v))
   end
 
+fun next_move (p,b) = 
+  let
+    val (x::xs) = valid_moves (p,b)
+  in
+    x
+  end
+  
+fun think ((p,b), m, t) = 
+  let
+      val cur_p = make_move (opponent p,b) m
+      val nm = next_move (p,b)
+      val next_p = make_move cur_p nm
+  in
+      (nm, next_p)
+  end
 end;
 
 
-val (x::xs) = Reversi_AI.valid_moves (Reversi_AI.init Reversi_AI.Black);
+(* val (x::xs) = Reversi_AI.valid_moves (Reversi_AI.init Reversi_AI.Black);
 val t_status = Reversi_AI.make_move (Reversi_AI.init Reversi_AI.Black) x;
 
 Reversi_AI.valid_moves t_status;
@@ -161,6 +186,7 @@ val (p, Reversi_AI.Board b) = t_status;
 
 Reversi_AI.get_all_p b (Reversi_AI.Black) 0;
 Reversi_AI.get_all_p b (Reversi_AI.White) 0;
+Reversi_AI.get_mark t_status;
 
 val t_status = Reversi_AI.make_move t_status (Reversi_AI.Move 19);
 val (p, Reversi_AI.Board b) = t_status;
@@ -173,7 +199,7 @@ Reversi_AI.get_all_p b (Reversi_AI.White) 0;
 val t_status = Reversi_AI.make_move t_status (Reversi_AI.Move 26);
 val (p, Reversi_AI.Board b) = t_status;
 
-(* Reversi_AI.valid_moves t_status; *)
+Reversi_AI.valid_moves t_status;
 
 Reversi_AI.get_all_p b (Reversi_AI.Black) 0;
-Reversi_AI.get_all_p b (Reversi_AI.White) 0;
+Reversi_AI.get_all_p b (Reversi_AI.White) 0; *)
